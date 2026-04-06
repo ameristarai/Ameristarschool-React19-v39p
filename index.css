@@ -1,0 +1,67 @@
+/*
+ * index.css
+ * Tailwind v4 is loaded through the official Vite plugin.
+ * We keep the existing JavaScript config file alive with @config so custom
+ * colors, fonts, spacing, and animations continue to work without a redesign.
+ */
+@import "tailwindcss";
+@config "./tailwind.config.js";
+
+/* ── Global base styles ─────────────────────────────────────────────────────
+   Moved here from the inline <style> block in index.html.
+   Tailwind's base layer resets these if not explicitly set, so we add them
+   back as globals here.
+*/
+body {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Custom scrollbar — WebKit only */
+::-webkit-scrollbar {
+  width: 8px;
+}
+::-webkit-scrollbar-track {
+  background: #ffffff;
+}
+::-webkit-scrollbar-thumb {
+  background: #e2e8f0;
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #cbd5e1;
+}
+
+@layer base {
+  /* Preserve v3-ish placeholder styling for the enrollment/contact forms. */
+  input::placeholder,
+  textarea::placeholder {
+    color: var(--color-gray-400);
+  }
+
+  /* Keep buttons feeling clickable after v4 Preflight changes. */
+  button:not(:disabled),
+  [role="button"]:not(:disabled) {
+    cursor: pointer;
+  }
+}
+
+/* ── Mobile video pan animation ─────────────────────────────────────────────
+   On mobile only: holds on the students (center) for ~2s, then eases left
+   to the instructor (15%) over ~1.5s, then holds for the rest of the loop.
+   Timed to the 8-second video duration. Runs once; stays on instructor.
+   Desktop (md: 768px+) is unaffected — no class applied there.
+─────────────────────────────────────────────────────────────────────────── */
+/* translateX pan — shifts video rightward at start (showing students),
+   slides left to 0 (revealing instructor at object-position 15%).
+   transform is GPU-composited on all browsers; object-position is not. */
+@keyframes panToInstructor {
+  0%   { transform: translateX(50%); }
+  100% { transform: translateX(0);   }
+}
+
+@media (max-width: 767px) {
+  .video-pan-mobile {
+    animation: panToInstructor 8s ease-in-out 1 forwards;
+  }
+}
