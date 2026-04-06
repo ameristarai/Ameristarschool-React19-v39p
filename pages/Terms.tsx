@@ -486,7 +486,7 @@ const Terms = ({ onNavigate }: TermsProps) => {
                  <p className="text-sm text-gray-500 font-light mb-2">All legal notices must be in writing.</p>
                  <ul className="text-sm text-gray-600 space-y-1">
                     <li><strong>Email:</strong> ameristarschool@yahoo.com</li>
-                    <li><strong>Address:</strong> Los Angeles, California</li>
+                    <li><strong>Address:</strong> Ameristar School, P.O. Box 1143, San Gabriel, CA 91778</li>
                  </ul>
               </div>
               <div className="bg-gray-50 p-8 rounded-xl">
