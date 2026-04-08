@@ -126,6 +126,7 @@ export interface PDFTotals {
   materialsSubtotal: number;
   shippingSubtotal:  number;
   grandTotal:        number;
+  ccFee?:            number;   // 3.5% credit card processing fee, 0 or absent if Zelle
 }
 
 // ── Main generator ────────────────────────────────────────────────────────────
@@ -185,7 +186,7 @@ export function generateEnrollmentPDF(data: PDFFormData, totals: PDFTotals): jsP
     doc.setFontSize(7);
     doc.setTextColor(...MID);
 
-    doc.text('Ameristar School  ·  P.O. Box 1143, San Gabriel, CA 91778  ·  (310) 377-0337  ·  (626) 308-0150  ·  ameristarschool@yahoo.com', ML, PH - 9);
+    doc.text('Ameristar School  ·  Los Angeles, CA  ·  (310) 377-0337  ·  (626) 308-0150  ·  ameristarschool@yahoo.com', ML, PH - 9);
     doc.text(`Page ${pageNum} of ${totalPages}`, PW - MR, PH - 9, { align: 'right' });
     doc.text('Bureau for Private Postsecondary Education (BPPE) Approved Provider', ML, PH - 5);
   };
@@ -530,6 +531,10 @@ export function generateEnrollmentPDF(data: PDFFormData, totals: PDFTotals): jsP
     pageNum
   );
   summaryRow('Registration Fee (Non-Refundable)', totals.registrationFee, false, pageNum);
+  // Change 11: CC fee line — only renders when ccFee > 0
+  if (totals.ccFee && totals.ccFee > 0) {
+    summaryRow('Credit Card Processing Fee (3.5%)', totals.ccFee, false, pageNum);
+  }
   y += 2;
   summaryRow('TOTAL DUE', totals.grandTotal, true, pageNum);
 
@@ -548,7 +553,16 @@ export function generateEnrollmentPDF(data: PDFFormData, totals: PDFTotals): jsP
   doc.setFontSize(9.5);
   doc.setTextColor(...DARK);
   doc.text(PAYMENT_LABELS[data.paymentMethod] || data.paymentMethod, ML + 4, y);
-  y += 12;
+  y += 6;
+  // Change 10: CC fee disclosure line in PDF
+  if (totals.ccFee && totals.ccFee > 0) {
+    doc.setFont('helvetica', 'italic');
+    doc.setFontSize(7.5);
+    doc.setTextColor(...MID);
+    doc.text('A 3.5% credit card processing fee of $' + totals.ccFee.toFixed(2) + ' has been applied to the total above.', ML + 4, y);
+    y += 6;
+  }
+  y += 6;
 
   // ═══════════════════════════════════════════════════════════════════════════
   // SECTION 4: Agreement & Signature
@@ -594,7 +608,7 @@ export function generateEnrollmentPDF(data: PDFFormData, totals: PDFTotals): jsP
       heading: "STUDENT'S RIGHT TO CANCEL",
       lines: [
         'The student has the right to cancel this enrollment agreement and obtain a refund',
-        'by providing written notice to Ameristar School, P.O. Box 1143, San Gabriel, CA 91778.',
+        'by providing written notice to Ameristar School, 120 S. Del Mar Ave, Unit 1143, San Gabriel, CA 91778.',
       ],
     },
     {
