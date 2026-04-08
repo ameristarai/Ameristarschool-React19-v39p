@@ -535,7 +535,7 @@ const Enrollment = ({ onNavigate }: EnrollmentProps) => {
                         checked={formData.selectedCourses.includes('re-property-mgmt')} onChange={() => toggleCourse('re-property-mgmt')} />
                       <Checkbox label="Real Estate Economics" subLabel="45h ($99)"
                         checked={formData.selectedCourses.includes('re-economics')} onChange={() => toggleCourse('re-economics')} />
-                      <Checkbox label="Practice Exams" subLabel="($150?)"
+                      <Checkbox label="Practice Exams" subLabel="($150)"
                         subLabelClassName="text-xs text-gray-400 mt-1"
                         checked={formData.selectedCourses.includes('re-practice-exams')} onChange={() => toggleCourse('re-practice-exams')} />
                     </div>
