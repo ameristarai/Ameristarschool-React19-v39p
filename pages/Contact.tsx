@@ -138,14 +138,23 @@ const Contact = () => {
                 <div className="p-3 bg-gray-50 rounded-full group-hover:bg-champagne/10 transition-colors">
                   <MapPin className="w-6 h-6 text-obsidian" strokeWidth={1.5} />
                 </div>
-                <div>
-                  <h3 className="font-serif text-lg mb-1">Office</h3>
-                  <p className="text-gray-500 font-light">
-		    Ameristar School<br /> 
-		    P.O. Box 1143<br />
-                    San Gabriel, California, 91778<br />
-                    Available for in-person consultation by appointment.
-                  </p>
+                <div className="space-y-4">
+                  <h3 className="font-serif text-lg mb-1">Locations</h3>
+                  <div>
+                    <p className="text-xs text-champagne uppercase tracking-widest font-semibold mb-1">San Gabriel · Los Angeles</p>
+                    <p className="text-gray-500 font-light">
+                      120 S. Del Mar Ave, Unit 1143<br />
+                      San Gabriel, CA 91778<br />
+                      <span className="text-xs">Available by appointment.</span>
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-champagne uppercase tracking-widest font-semibold mb-1">Irvine · Orange County <span className="text-gray-400 normal-case tracking-normal font-light">(Coming Soon)</span></p>
+                    <p className="text-gray-500 font-light">
+                      Address to be announced.<br />
+                      <span className="text-xs">Workspace currently being finalized.</span>
+                    </p>
+                  </div>
                 </div>
               </div>
             </div>

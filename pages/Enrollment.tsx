@@ -54,7 +54,7 @@ const Enrollment = ({ onNavigate }: EnrollmentProps) => {
     fullName: '', email: '', phone: '', address: '',
     caReLicense: '', caInsLicense: '', nmlsId: '',
     selectedCourses: [],
-    paymentMethod: '', signature: '',
+    paymentMethod: 'zelle', signature: '',
     date: new Date().toISOString().split('T')[0],
     agreedToTerms: false,
   });
@@ -217,7 +217,13 @@ const Enrollment = ({ onNavigate }: EnrollmentProps) => {
           wantsShipping: false, paymentMethod: formData.paymentMethod,
           signature: formData.signature, date: formData.date,
         },
-        { courseSubtotal, registrationFee: REGISTRATION_FEE, materialsSubtotal: 0, shippingSubtotal: 0, grandTotal }
+        (() => {
+            const ccFeeForPDF = formData.paymentMethod === 'credit'
+              ? parseFloat(((courseSubtotal + REGISTRATION_FEE) * 0.035).toFixed(2))
+              : 0;
+            const grandTotalForPDF = courseSubtotal + REGISTRATION_FEE + ccFeeForPDF;
+            return { courseSubtotal, registrationFee: REGISTRATION_FEE, materialsSubtotal: 0, shippingSubtotal: 0, grandTotal: grandTotalForPDF, ccFee: ccFeeForPDF };
+          })()
       );
       const fileName = `Ameristar-Enrollment-${formData.fullName.replace(/\s+/g, '-')}.pdf`;
       doc.save(fileName);
@@ -529,7 +535,7 @@ const Enrollment = ({ onNavigate }: EnrollmentProps) => {
                         checked={formData.selectedCourses.includes('re-property-mgmt')} onChange={() => toggleCourse('re-property-mgmt')} />
                       <Checkbox label="Real Estate Economics" subLabel="45h ($99)"
                         checked={formData.selectedCourses.includes('re-economics')} onChange={() => toggleCourse('re-economics')} />
-                      <Checkbox label="Practice Exams" subLabel="($150)"
+                      <Checkbox label="Practice Exams" subLabel="($150?)"
                         subLabelClassName="text-xs text-gray-400 mt-1"
                         checked={formData.selectedCourses.includes('re-practice-exams')} onChange={() => toggleCourse('re-practice-exams')} />
                     </div>
@@ -545,6 +551,27 @@ const Enrollment = ({ onNavigate }: EnrollmentProps) => {
                       <Checkbox label="45-Hour CE Package" subLabel="License Renewal ($285)"
                         checked={formData.selectedCourses.includes('re-ce')} onChange={() => toggleCourse('re-ce')} />
                     </div>
+                    {/* Change 17: Alert when 45-Hour CE Package is selected */}
+                    {formData.selectedCourses.includes('re-ce') && (
+                      <div className="mt-4 flex items-start gap-3 px-4 py-3 rounded-xl bg-amber-50 border border-amber-200 animate-fade-in">
+                        <Info size={15} className="text-amber-600 shrink-0 mt-0.5" />
+                        <div>
+                          <p className="text-xs font-semibold text-amber-800 mb-1">Action Required — Separate Exam Form Needed</p>
+                          <p className="text-xs text-amber-700 leading-relaxed">
+                            Completing this enrollment form is <strong>not sufficient</strong> for the DRE 45-Hour CE Package. You must also complete and submit the{' '}
+                            <strong>DRE Final Exam Application</strong> (wet signature required) available on our{' '}
+                            <button
+                              type="button"
+                              onClick={() => onNavigate(Page.Forms)}
+                              className="underline font-semibold hover:text-amber-900 transition-colors"
+                            >
+                              Forms page
+                            </button>.
+                            Fill in your name, address, phone number, then sign and date. Your proctor will handle submission.
+                          </p>
+                        </div>
+                      </div>
+                    )}
                   </div>
 
                 </div>
@@ -570,29 +597,50 @@ const Enrollment = ({ onNavigate }: EnrollmentProps) => {
               <span className="w-8 h-8 rounded-full bg-champagne/10 text-champagne text-sm font-bold flex items-center justify-center font-sans">03</span>
               Payment Method
             </h2>
-            <div className="bg-gray-50 p-6 rounded-xl mb-8 border border-gray-200 space-y-3">
-              <div className="flex justify-between items-center pb-3 border-b border-gray-200">
-                <div>
-                  <p className="font-bold text-obsidian">Courses</p>
-                  <p className="text-xs text-gray-500">{courseCount} selected · prices vary per course</p>
+            {/* Change 11: CC fee computed inline — only applies when credit is selected */}
+            {(() => {
+              const CC_FEE_RATE = 0.035;
+              const ccFee = formData.paymentMethod === 'credit'
+                ? parseFloat(((courseSubtotal + REGISTRATION_FEE) * CC_FEE_RATE).toFixed(2))
+                : 0;
+              const finalTotal = courseSubtotal + REGISTRATION_FEE + ccFee;
+              return (
+                <div className="bg-gray-50 p-6 rounded-xl mb-8 border border-gray-200 space-y-3">
+                  <div className="flex justify-between items-center pb-3 border-b border-gray-200">
+                    <div>
+                      <p className="font-bold text-obsidian">Courses</p>
+                      <p className="text-xs text-gray-500">{courseCount} selected · prices vary per course</p>
+                    </div>
+                    <p className="font-serif text-lg text-obsidian">${courseSubtotal.toFixed(2)}</p>
+                  </div>
+                  <div className="flex justify-between items-center pb-3 border-b border-gray-200">
+                    <div>
+                      <p className="font-bold text-obsidian">Registration Fee</p>
+                      <p className="text-xs text-gray-500 uppercase tracking-wide">Non-Refundable</p>
+                    </div>
+                    <p className="font-serif text-lg text-obsidian">${REGISTRATION_FEE.toFixed(2)}</p>
+                  </div>
+                  {/* Change 11: Credit card fee line — only shows when credit is selected */}
+                  {formData.paymentMethod === 'credit' && (
+                    <div className="flex justify-between items-center pb-3 border-b border-gray-200 animate-fade-in">
+                      <div>
+                        <p className="font-bold text-obsidian">Credit Card Processing Fee</p>
+                        <p className="text-xs text-gray-500">3.5% of subtotal</p>
+                      </div>
+                      <p className="font-serif text-lg text-obsidian">${ccFee.toFixed(2)}</p>
+                    </div>
+                  )}
+                  <div className="flex justify-between items-center pt-2">
+                    <p className="font-bold text-xl text-obsidian">Total Due</p>
+                    <p className="font-serif text-3xl text-champagne font-bold">${finalTotal.toFixed(2)}</p>
+                  </div>
                 </div>
-                <p className="font-serif text-lg text-obsidian">${courseSubtotal.toFixed(2)}</p>
-              </div>
-              <div className="flex justify-between items-center pb-3 border-b border-gray-200">
-                <div>
-                  <p className="font-bold text-obsidian">Registration Fee</p>
-                  <p className="text-xs text-gray-500 uppercase tracking-wide">Non-Refundable</p>
-                </div>
-                <p className="font-serif text-lg text-obsidian">${REGISTRATION_FEE.toFixed(2)}</p>
-              </div>
-              <div className="flex justify-between items-center pt-2">
-                <p className="font-bold text-xl text-obsidian">Total Due</p>
-                <p className="font-serif text-3xl text-champagne font-bold">${grandTotal.toFixed(2)}</p>
-              </div>
-            </div>
+              );
+            })()}
             <p className="text-sm text-gray-500 mb-6">Select your preferred payment method. A detailed invoice will be sent upon submission.</p>
+            {/* Change 8: Zelle left, Credit Card right */}
             <div className="grid grid-cols-2 gap-4">
-              {(['Credit Card', 'Zelle'] as const).map((method) => {
+              {(['Zelle', 'Credit Card'] as const).map((method) => {
                 const key = method.toLowerCase().split(' ')[0] as FormData['paymentMethod'];
                 return (
                   <div key={method}
@@ -612,9 +660,11 @@ const Enrollment = ({ onNavigate }: EnrollmentProps) => {
                 <strong>Zelle Payee:</strong> (626) 308-0150 &nbsp;—&nbsp; Please include your full name and date of application submission in the memo line.
               </div>
             )}
+            {/* Change 10: Credit card disclaimer */}
             {formData.paymentMethod === 'credit' && (
-              <div className="mt-6 p-4 bg-blue-50 border border-blue-100 rounded-lg text-blue-900 text-sm animate-fade-in">
-                Please contact Ameristar School at <strong>(626) 308-0150</strong> for credit card payment after submitting this application form.
+              <div className="mt-6 p-4 bg-amber-50 border border-amber-200 rounded-lg text-amber-900 text-sm animate-fade-in space-y-1">
+                <p><strong>Credit Card Payment:</strong> Please contact Ameristar School at <strong>(626) 308-0150</strong> to complete your credit card payment after submitting this application.</p>
+                <p className="text-xs text-amber-700">A 3.5% credit card processing fee has been added to your total above.</p>
               </div>
             )}
           </div>
@@ -635,7 +685,7 @@ const Enrollment = ({ onNavigate }: EnrollmentProps) => {
               </div>
 
               <h4 className="font-bold uppercase text-obsidian text-sm border-b border-gray-200 pb-2">Student's Right to Cancel</h4>
-              <p>The student has the right to cancel this enrollment agreement and obtain a refund by providing written notice to: Shirley Miao, Director, Ameristar School, P.O. Box 1143, San Gabriel, CA 91778.</p>
+              <p>The student has the right to cancel this enrollment agreement and obtain a refund by providing written notice to: Shirley Miao, Director, Ameristar School, 120 S. Del Mar Ave, Unit 1143, San Gabriel, CA 91778.</p>
 
               <h4 className="font-bold uppercase text-obsidian text-sm border-b border-gray-200 pb-2">Refund Policy</h4>
               <p>The total cost of the courses, including textbooks and course materials, is based on the selection above. The student will be allowed one year from the date of this Agreement to complete these courses.</p>

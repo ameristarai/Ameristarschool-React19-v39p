@@ -35,7 +35,7 @@ const forms: FormCard[] = [
   {
     id: 'dre-exam-app',
     agency: 'CA DRE',
-    title: 'Final Exam Application',
+    title: 'CE Final Exam Application',
     subtitle: 'Exam Request & Answer Sheet',
     description:
       'Used for DRE real estate final examinations. Students complete the top section before the exam; the proctor completes the administrator section below the dividing line. Includes the official DRE answer sheet (RE Form 420).',
