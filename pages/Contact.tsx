@@ -152,7 +152,6 @@ const Contact = () => {
                     <p className="text-xs text-champagne uppercase tracking-widest font-semibold mb-1">Irvine · Orange County <span className="text-gray-400 normal-case tracking-normal font-light">(Coming Soon)</span></p>
                     <p className="text-gray-500 font-light">
                       Address to be announced.<br />
-                      <span className="text-xs">Workspace currently being finalized.</span>
                     </p>
                   </div>
                 </div>
