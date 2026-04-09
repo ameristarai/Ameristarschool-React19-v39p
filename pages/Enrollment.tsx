@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import type { ChangeEvent, FormEvent } from 'react';
 import { Send, CheckCircle, Loader2, AlertCircle, Info, BookOpen, Clock } from 'lucide-react';
 import SEO from '../components/SEO';
@@ -64,6 +64,50 @@ const Enrollment = ({ onNavigate }: EnrollmentProps) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitted, setSubmitted]       = useState(false);
   const [submitError, setSubmitError]   = useState<string | null>(null);
+
+  // ── Cloudflare Turnstile ──────────────────────────────────────────────────
+  // turnstileRef holds the container div. widgetId lets us call reset() on
+  // failed submissions so the student can retry without refreshing the page.
+  // The widget is invisible to real users (Managed mode — no puzzle shown).
+  // ⚠️  IMPORTANT: Replace PLACEHOLDER_SITE_KEY below with your actual
+  //     Cloudflare Turnstile Site Key before deploying.
+  //     Site Key is obtained from: Cloudflare Dashboard → Turnstile → your site.
+  //     Secret Key goes in Netlify env vars as TURNSTILE_SECRET_KEY (not here).
+  const TURNSTILE_SITE_KEY = 'PLACEHOLDER_SITE_KEY';  // ⚠️ REPLACE THIS
+  const turnstileRef = useRef<HTMLDivElement>(null);
+  const widgetIdRef  = useRef<string | null>(null);
+
+  useEffect(() => {
+    // Render the Turnstile widget once the component mounts and the
+    // Cloudflare script has loaded. The widget is invisible to real users.
+    const renderWidget = () => {
+      if (
+        turnstileRef.current &&
+        widgetIdRef.current === null &&
+        typeof window !== 'undefined' &&
+        (window as any).turnstile
+      ) {
+        widgetIdRef.current = (window as any).turnstile.render(turnstileRef.current, {
+          sitekey: TURNSTILE_SITE_KEY,
+          size: 'invisible',
+        });
+      }
+    };
+
+    // Script may already be loaded, or may still be loading
+    if ((window as any).turnstile) {
+      renderWidget();
+    } else {
+      // Poll briefly for the script to finish loading (async + defer)
+      const interval = setInterval(() => {
+        if ((window as any).turnstile) {
+          renderWidget();
+          clearInterval(interval);
+        }
+      }, 100);
+      return () => clearInterval(interval);
+    }
+  }, []);
 
   // Pricing
   const COURSE_PRICE        = 100;  // Default fallback: NMLS courses
@@ -243,6 +287,12 @@ const Enrollment = ({ onNavigate }: EnrollmentProps) => {
           fileName,
           studentName: formData.fullName,
           studentEmail: formData.email || '',
+          // Turnstile token — the backend verifies this server-side.
+          // Empty string when TURNSTILE_SITE_KEY is still a placeholder
+          // (backend skips verification if TURNSTILE_SECRET_KEY is not set).
+          turnstileToken: (widgetIdRef.current !== null && (window as any).turnstile)
+            ? (window as any).turnstile.getResponse(widgetIdRef.current)
+            : '',
         }),
       });
 
@@ -266,6 +316,10 @@ const Enrollment = ({ onNavigate }: EnrollmentProps) => {
       window.scrollTo({ top: 0, behavior: 'smooth' });
 
     } catch (err) {
+      // Reset Turnstile widget so the student can retry without refreshing
+      if (widgetIdRef.current !== null && (window as any).turnstile) {
+        (window as any).turnstile.reset(widgetIdRef.current);
+      }
       setSubmitError(err instanceof Error ? err.message : 'Unexpected error. Please try again.');
     } finally {
       setIsSubmitting(false);
@@ -742,6 +796,22 @@ const Enrollment = ({ onNavigate }: EnrollmentProps) => {
               </div>
             </div>
           </div>
+
+          {/* ── Bot protection elements ────────────────────────────────────────
+               Honeypot: hidden input invisible to humans. Bots fill it in;
+               the backend silently discards those submissions.
+               Turnstile: invisible widget div — Cloudflare handles verification
+               without showing a puzzle to real users.
+          ────────────────────────────────────────────────────────────────── */}
+          <input
+            type="text"
+            name="company"
+            autoComplete="off"
+            tabIndex={-1}
+            aria-hidden="true"
+            style={{ display: 'none' }}
+          />
+          <div ref={turnstileRef} />
 
           {/* Submit bar */}
           <div className="flex flex-col items-center gap-4 pt-4">
