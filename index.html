@@ -37,6 +37,13 @@
          Tracks page views, user sessions, and navigation across the site.
          SPA page_view events are fired from App.tsx on each route change.
     ──────────────────────────────────────────────────────────────────────── -->
+    <!-- ── Cloudflare Turnstile Bot Protection ──────────────────────────────
+         Loads the Turnstile widget library. The widget itself is rendered
+         inside Enrollment.tsx near the submit button.
+         No Site Key is needed here — this is just the generic script loader.
+    ──────────────────────────────────────────────────────────────────────── -->
+    <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-P3HK24ZZ2M"></script>
     <script>
       window.dataLayer = window.dataLayer || [];
