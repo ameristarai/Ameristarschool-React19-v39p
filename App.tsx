@@ -169,7 +169,7 @@ const App = () => {
   return (
     <div className="min-h-screen flex flex-col font-sans text-obsidian selection:bg-champagne/30 relative overflow-hidden bg-paper">
       {/* Ambient Background Glows */}
-      <div className="fixed top-[-20%] right-[-10%] w-[800px] h-[800px] bg-champagne/10 rounded-full blur-[120px] pointer-events-none z-0 mix-blend-multiply" />
+      <div className="fixed top-[-20%] right-[-10%] w-[800px] h-[800px] bg-champagne/20 rounded-full blur-[120px] pointer-events-none z-0 mix-blend-multiply" />
       <div className="fixed bottom-[-10%] left-[-10%] w-[600px] h-[600px] bg-blue-50/80 rounded-full blur-[100px] pointer-events-none z-0 mix-blend-multiply" />
 
       <Navigation currentPage={currentPage} onNavigate={handleNavigate} />
