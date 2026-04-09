@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Menu, X } from 'lucide-react';
 import { Page } from '../types';
 
@@ -10,6 +10,27 @@ interface NavigationProps {
 const Navigation = ({ currentPage, onNavigate }: NavigationProps) => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
+  // ── Horizontal sheen effect for desktop Enroll Now button ────────────────
+  // Tracks ONLY the mouse X position relative to the button width.
+  // A vertical stripe of soft light sweeps left-right like a metallic sheen.
+  // Y axis is fixed at 50% — no vertical tracking.
+  const enrollRef = useRef<HTMLButtonElement>(null);
+
+  const handleEnrollMouseMove = (e: React.MouseEvent<HTMLButtonElement>) => {
+    const btn  = enrollRef.current;
+    if (!btn) return;
+    const rect = btn.getBoundingClientRect();
+    const x    = ((e.clientX - rect.left) / rect.width) * 100;
+    btn.style.setProperty('--x', `${x}%`);
+  };
+
+  const handleEnrollMouseLeave = () => {
+    const btn = enrollRef.current;
+    if (!btn) return;
+    // Reset to off-screen right so sheen slides out gracefully
+    btn.style.setProperty('--x', '150%');
+  };
 
   useEffect(() => {
     const handleScroll = () => {
@@ -74,10 +95,25 @@ const Navigation = ({ currentPage, onNavigate }: NavigationProps) => {
         {/* Enroll Now CTA + Mobile Toggle */}
         <div className="flex items-center gap-6">
           <button
+            ref={enrollRef}
             onClick={() => onNavigate(Page.Enrollment)}
-            className="hidden md:inline-flex items-center bg-brand-gold text-brand-navy px-7 py-3 rounded-full text-sm font-bold uppercase tracking-widest hover:bg-white transition-all shadow-xl hover:scale-105 active:scale-95"
+            onMouseMove={handleEnrollMouseMove}
+            onMouseLeave={handleEnrollMouseLeave}
+            className="hidden md:inline-flex items-center relative overflow-hidden bg-brand-gold text-brand-navy px-7 py-3 rounded-full text-sm font-bold uppercase tracking-widest hover:bg-white transition-all shadow-xl hover:scale-105 active:scale-95"
+            style={{ '--x': '150%' } as React.CSSProperties}
           >
-            Enroll Now
+            {/* Horizontal sheen — vertical stripe that tracks mouse X only.
+                Y is fixed at 50% so the light sweeps purely left-to-right.
+                pointer-events-none ensures clicks always reach the button. */}
+            <span
+              aria-hidden="true"
+              className="pointer-events-none absolute inset-0 rounded-full transition-[background] duration-100"
+              style={{
+                background:
+                  'linear-gradient(90deg, transparent calc(var(--x) - 20%), rgba(255,255,255,0.28) var(--x), transparent calc(var(--x) + 20%))',
+              }}
+            />
+            <span className="relative z-10">Enroll Now</span>
           </button>
 
           <div className="md:hidden">
