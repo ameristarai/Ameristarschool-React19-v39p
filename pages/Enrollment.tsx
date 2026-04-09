@@ -73,7 +73,7 @@ const Enrollment = ({ onNavigate }: EnrollmentProps) => {
   //     Cloudflare Turnstile Site Key before deploying.
   //     Site Key is obtained from: Cloudflare Dashboard → Turnstile → your site.
   //     Secret Key goes in Netlify env vars as TURNSTILE_SECRET_KEY (not here).
-  const TURNSTILE_SITE_KEY = 'PLACEHOLDER_SITE_KEY';  // ⚠️ REPLACE THIS
+  const TURNSTILE_SITE_KEY = '0x4AAAAAAC2ljPWdmr1JF9hOs-NYHHC4hHY';  // ⚠️ REPLACE THIS
   const turnstileRef = useRef<HTMLDivElement>(null);
   const widgetIdRef  = useRef<string | null>(null);
 
